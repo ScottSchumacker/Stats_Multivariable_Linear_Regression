@@ -4,6 +4,7 @@
 # Loading packages
 library(tidyverse)
 library(lmtest)
+library(gridExtra)
 
 # Creating data set
 n <- 200
@@ -26,3 +27,27 @@ price <- true_coefficients[1] +
   rnorm(n, 0, error_sd)
 
 car_data <- data.frame(price, mileage, year, engine_size, horsepower)
+
+# Visualizing the relationship between our independent and dependent variables
+# Visualizing data as scatter plot
+P1 <- car_data %>% 
+  ggplot(aes(mileage, price)) +
+  geom_point() +
+  theme_classic()
+
+P2 <- car_data %>% 
+  ggplot(aes(year, price)) +
+  geom_point() +
+  theme_classic()
+
+P3 <- car_data %>% 
+  ggplot(aes(engine_size, price)) +
+  geom_point() +
+  theme_classic()
+
+P4 <- car_data %>% 
+  ggplot(aes(horsepower, price)) +
+  geom_point() +
+  theme_classic()
+
+grid.arrange(P1,P2,P3,P4, nrow = 2)

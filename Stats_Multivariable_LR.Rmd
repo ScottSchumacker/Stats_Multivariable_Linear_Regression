@@ -1,0 +1,109 @@
+---
+title: 'Statistics: Multivariable Linear Regression'
+author: "Scott Schumacker"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This project will show an example multivariable linear regression analysis using a fake data set about cars. We will be analyzing the linear relationship between the car price variable and year, mileage, engine size, and horsepower variables.
+
+***Loading Packages***
+```{r}
+library(tidyverse)
+library(lmtest)
+library(gridExtra)
+```
+
+## Creating a data set
+For this example linear regression analysis, we will be using the cars data. Preview of the data:
+```{r}
+# Creating data set
+n <- 200
+
+mileage <- rnorm(n, mean = 50000, sd = 20000)
+year <- round(rnorm(n, mean = 2015, sd = 5))
+engine_size <- runif(n, min = 1.5, max = 4.0)
+horsepower <- round(rnorm(n, mean = 200, sd = 50))
+mileage <- pmax(mileage, 1000)
+horsepower <- pmax(horsepower, 70)
+
+true_coefficients <- c(1000, -0.1, 1500, 200, 50)
+error_sd <- 3000
+
+price <- true_coefficients[1] +
+  true_coefficients[2] * mileage +
+  true_coefficients[3] * (year - 2000) +
+  true_coefficients[4] * engine_size +
+  true_coefficients[5] * horsepower +
+  rnorm(n, 0, error_sd)
+
+car_data <- data.frame(price, mileage, year, engine_size, horsepower)
+```
+
+After seeing a preview of the data set, we can visualize the relationship between these variables to see if there may be a linear relationship.
+
+***Visualizing linear relationship***
+```{r}
+# Visualizing data as scatter plot
+P1 <- car_data %>% 
+  ggplot(aes(mileage, price)) +
+  geom_point() +
+  theme_classic()
+
+P2 <- car_data %>% 
+  ggplot(aes(year, price)) +
+  geom_point() +
+  theme_classic()
+
+P3 <- car_data %>% 
+  ggplot(aes(engine_size, price)) +
+  geom_point() +
+  theme_classic()
+
+P4 <- car_data %>% 
+  ggplot(aes(horsepower, price)) +
+  geom_point() +
+  theme_classic()
+
+grid.arrange(P1,P2,P3,P4, nrow = 2)
+```
+
+There appears to be a slight negative linear relationship between mileage and price. There appears to be a strong positive linear relationship between year and price. There appears to be no linear relationship between engine size and price. There appears to be a moderate positive linear relationship between horsepower and price.
+
+Before creating our multivariable linear model we can create our Hypothesis: <br>
+H0: The slope of the regression equals 0 (B0 = 0) <br>
+Ha: The slope of the regression does not equal 0 (B0 != 0)
+
+We can use an alpha of 0.05.
+
+***Creating linear model***
+```{r}
+# Creating model summary
+lmModel <- lm(price ~ mileage + year + engine_size + horsepower, data = car_data)
+lmModel
+summary(lmModel)
+```
+### Results
+The model output shows us that there is a significant linear relationship between price and all of our independent variables. In addition, we can that our overall model is statistically significant and that we can reject our null hypothesis (p-value < 2.2e-16). In addition, from the Adjusted R-squared value, we can see that our model with these variables explains 87% of the variation in price.
+
+***Checking linear regression assumptions***
+
+To make sure that the linear regression analysis is valid, we also need to check the assumptions.
+
+We can first check for normality of the model residuals:
+```{r}
+# Checking normality of residuals
+hist(lmModel$residuals)
+```
+
+We can see that the residuals show a normal distribution and are centered around 0.
+
+In addition, we can check for homoscedasticity of variance of the residuals using the Breusch-Pagan Test with an alpha of 0.05:
+```{r}
+bptest(lmModel)
+```
+Since our p-value is greater than our alpha of 0.05, we can assume equal variance in the model residual.

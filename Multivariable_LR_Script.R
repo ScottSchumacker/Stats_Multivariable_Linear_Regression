@@ -54,7 +54,6 @@ grid.arrange(P1,P2,P3,P4, nrow = 2)
 
 # Looking at model coefficients
 lmModel <- lm(price ~ mileage + year + engine_size + horsepower, data = car_data)
-lmModel
 summary(lmModel)
 
 # Checking normality of residuals
